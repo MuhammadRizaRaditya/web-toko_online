@@ -27,6 +27,56 @@
                             <dd class="text-sm text-gray-900">{{ $product->category?->name ?? '-' }}</dd>
                         </div>
                         <div>
+                            <dt class="text-sm text-gray-500">Merek</dt>
+                            <dd class="text-sm text-gray-900">{{ $product->brand ?? '-' }}</dd>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <dt class="text-sm text-gray-500">Bahan</dt>
+                                <dd class="text-sm text-gray-900">{{ $product->material ?? '-' }}</dd>
+                            </div>
+                            <div>
+                                <dt class="text-sm text-gray-500">Model / Potongan</dt>
+                                <dd class="text-sm text-gray-900">{{ $product->fit_style ?? '-' }}</dd>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <dt class="text-sm text-gray-500">Berat</dt>
+                                <dd class="text-sm text-gray-900">{{ $product->weight_grams ? $product->weight_grams.' gram' : '-' }}</dd>
+                            </div>
+                            <div>
+                                <dt class="text-sm text-gray-500">HPP (internal)</dt>
+                                <dd class="text-sm text-gray-900 font-medium">
+                                    @if ($product->cost_price !== null)
+                                        Rp {{ number_format($product->cost_price, 0, ',', '.') }}
+                                        <span class="text-xs text-gray-400 font-normal">(tak tampil di toko)</span>
+                                    @else
+                                        -
+                                    @endif
+                                </dd>
+                            </div>
+                        </div>
+                        <div>
+                            <dt class="text-sm text-gray-500">Label</dt>
+                            <dd class="flex flex-wrap gap-1.5 mt-1">
+                                @if (empty($product->labels))
+                                    <span class="text-sm text-gray-400">-</span>
+                                @else
+                                    @foreach ($product->labels as $label)
+                                        @if (isset(\App\Models\Product::LABEL_OPTIONS[$label]))
+                                            <span class="inline-flex px-2 py-0.5 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
+                                                {{ \App\Models\Product::LABEL_OPTIONS[$label] }}
+                                            </span>
+                                        @endif
+                                    @endforeach
+                                @endif
+                                @if ($product->is_featured)
+                                    <span class="inline-flex px-2 py-0.5 text-xs font-medium rounded-full bg-amber-100 text-amber-800">Unggulan</span>
+                                @endif
+                            </dd>
+                        </div>
+                        <div>
                             <dt class="text-sm text-gray-500">Status</dt>
                             <dd>
                                 @php
@@ -64,8 +114,16 @@
                 <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">Deskripsi</h3>
                     <div class="prose prose-sm max-w-none text-gray-700">
-                        {{ $product->description ?? '<em class="text-gray-400">Tidak ada deskripsi</em>' }}
+                        @if ($product->description)
+                            {!! nl2br(e($product->description)) !!}
+                        @else
+                            <em class="text-gray-400">Tidak ada deskripsi</em>
+                        @endif
                     </div>
+                    @if ($product->size_chart)
+                        <h4 class="text-sm font-semibold text-gray-900 mt-5 mb-2">Panduan Ukuran</h4>
+                        <div class="text-sm text-gray-700 whitespace-pre-line">{{ $product->size_chart }}</div>
+                    @endif
                 </div>
             </div>
 

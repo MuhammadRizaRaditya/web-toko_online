@@ -9,17 +9,35 @@ class Product extends Model
 {
     use HasFactory;
 
+    public const LABEL_OPTIONS = [
+        'new' => 'Produk Terbaru',
+        'best_seller' => 'Best Seller',
+        'promo' => 'Promo',
+    ];
+
     protected $fillable = [
         'category_id',
         'name',
         'slug',
+        'brand',
+        'material',
+        'fit_style',
+        'weight_grams',
+        'size_chart',
         'description',
+        'labels',
         'status',
+        'is_featured',
+        'cost_price',
         'created_by',
     ];
 
     protected $casts = [
         'status' => 'string',
+        'labels' => 'array',
+        'is_featured' => 'boolean',
+        'cost_price' => 'decimal:2',
+        'weight_grams' => 'integer',
     ];
 
     public function category()

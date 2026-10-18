@@ -12,7 +12,9 @@ class PermissionMiddleware
     public function handle(Request $request, Closure $next, ...$permissions): Response
     {
         if (! Auth::check()) {
-            return response()->json(['message' => 'Unauthenticated'], 401);
+            return $request->expectsJson()
+                ? response()->json(['message' => 'Unauthenticated'], 401)
+                : redirect()->guest(route('login'));
         }
 
         $user = Auth::user();

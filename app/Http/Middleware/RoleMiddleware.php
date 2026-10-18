@@ -12,7 +12,9 @@ class RoleMiddleware
     public function handle(Request $request, Closure $next, ...$roles): Response
     {
         if (! Auth::check()) {
-            return response()->json(['message' => 'Unauthenticated'], 401);
+            return $request->expectsJson()
+                ? response()->json(['message' => 'Unauthenticated'], 401)
+                : redirect()->guest(route('login'));
         }
 
         $user = Auth::user();

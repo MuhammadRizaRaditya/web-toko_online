@@ -43,6 +43,14 @@ class SizeController extends Controller
             ->with('success', 'Ukuran berhasil dibuat.');
     }
 
+    public function show(Size $size)
+    {
+        $size->loadCount('variants');
+        $size->load('variants.product');
+
+        return view('admin.sizes.show', compact('size'));
+    }
+
     public function edit(Size $size)
     {
         return view('admin.sizes.edit', compact('size'));

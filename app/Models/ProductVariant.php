@@ -78,6 +78,18 @@ class ProductVariant extends Model
         return $this->available_stock <= $this->low_stock_threshold;
     }
 
+    public function getDiscountPercentAttribute(): ?int
+    {
+        $compare = $this->compare_at_price !== null ? (float) $this->compare_at_price : null;
+        $price = (float) $this->price;
+
+        if ($compare === null || $compare <= 0 || $price >= $compare) {
+            return null;
+        }
+
+        return (int) round((($compare - $price) / $compare) * 100);
+    }
+
     public function reserve(int $quantity, ?int $actorId = null, ?string $referenceType = null, ?int $referenceId = null): bool
     {
         $success = DB::table('product_variants')

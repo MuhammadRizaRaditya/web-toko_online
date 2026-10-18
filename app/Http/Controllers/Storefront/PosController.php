@@ -7,29 +7,21 @@ use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\Color;
 use App\Models\Size;
-use App\Models\Cart;
-use App\Models\CartItem;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Payment;
-use App\Models\PaymentTransaction;
 use App\Models\PosSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class PosController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth');
-    }
-
     public function index()
     {
-        $posSettings = PosSetting::first() or PosSetting::create();
+        $posSettings = PosSetting::firstOrCreate([]);
         $products = Product::where('status', 'active')
-            ->with(['variants' => fn ($q) => $q->where('is_active', true)])
+            ->with(['category:id,name', 'variants' => fn ($q) => $q->where('is_active', true)])
             ->get();
 
         $sizes = Size::where('is_active', true)->get();
@@ -44,12 +36,11 @@ class PosController extends Controller
         
         $products = Product::where('status', 'active')
             ->where(function ($q) use ($query) {
-                $q->where('name', 'like', "%{$query}%")
-                    ->orWhere('sku', 'like', "%{$query}%");
+                $q->where('name', 'like', "%{$query}%");
             })
             ->whereHas('variants', fn ($q) => $q->where('is_active', true)->whereRaw('stock_on_hand - stock_reserved > 0'))
             ->take(10)
-            ->get(['id', 'name', 'slug', 'id']);
+            ->get(['id', 'name', 'slug']);
 
         return response()->json($products);
     }
@@ -95,7 +86,7 @@ class PosController extends Controller
             'notes' => 'nullable|string',
         ]);
 
-        $posSetting = PosSetting::first();
+        $posSetting = PosSetting::firstOrCreate([]);
 
         return DB::transaction(function () use ($request, $posSetting) {
             $order = new Order([
@@ -109,7 +100,7 @@ class PosController extends Controller
                 'currency' => 'IDR',
                 'subtotal' => 0,
                 'discount_total' => 0,
-                'shipping_total' => $posSetting?->cod_fee ?? 0,
+                'shipping_total' => 0,
                 'grand_total' => 0,
             ]);
 
@@ -118,67 +109,76 @@ class PosController extends Controller
             $grandTotal = 0;
 
             foreach ($request->variant_ids as $index => $variantId) {
-                $variant = ProductVariant::findOrFail($variantId);
-                $quantity = $request->quantities[$index];
+                $variant = ProductVariant::with(['product', 'size', 'color'])->findOrFail($variantId);
+                $quantity = (int) ($request->quantities[$index] ?? 0);
 
-                // Check stock availability
+                if ($quantity < 1) {
+                    throw ValidationException::withMessages([
+                        'variants' => "Jumlah tidak valid untuk varian {$variant->sku}",
+                    ]);
+                }
+
                 $available = $variant->available_stock;
                 if ($available < $quantity) {
-                    throw new \Exception("Stok tidak mencukup untuk varian {$variant->sku}. Tersedia: {$available}");
+                    throw ValidationException::withMessages([
+                        'variants' => "Stok tidak mencukupi untuk varian {$variant->sku}. Tersedia: {$available}",
+                    ]);
                 }
 
-                // Reserve stock
                 $success = $variant->reserve($quantity, auth()->id());
-                if (!$success) {
-                    // Rollback all reservations
-                    foreach ($request->variant_ids as $vid => $vid2) {
-                        $v = ProductVariant::find($vid);
-                        $v->release($request->quantities[$vid] ?? 1);
-                    }
-                    throw new \Exception("Gagal mereservasi stok");
+                if (! $success) {
+                    throw ValidationException::withMessages([
+                        'variants' => "Gagal mereservasi stok untuk varian {$variant->sku}",
+                    ]);
                 }
 
-                // Create order item
-                $orderItem = new OrderItem([
-                    'order_id' => $order->id,
-                    'variant_id' => $variantId,
-                    'quantity' => $quantity,
-                    'price' => $variant->price,
-                ]);
-                $orderItem->save();
+                $lineTotal = (float) $variant->price * $quantity;
 
-                // Calculate subtotal
-                $grandTotal += ($variant->price * $quantity);
+                OrderItem::create([
+                    'order_id' => $order->id,
+                    'variant_id' => $variant->id,
+                    'product_name_snapshot' => $variant->product->name,
+                    'sku_snapshot' => $variant->sku,
+                    'size_snapshot' => $variant->size?->name,
+                    'color_snapshot' => $variant->color?->name,
+                    'quantity' => $quantity,
+                    'unit_price' => $variant->price,
+                    'discount_amount' => 0,
+                    'line_total' => $lineTotal,
+                ]);
+
+                $grandTotal += $lineTotal;
             }
 
-            // Set order totals
-            $order->subtotal = $grandTotal;
-            $order->discount_total = 0;
-            $order->shipping_total = $posSetting?->cod_fee ?? 0;
-            $order->grand_total = $grandTotal + ($posSetting?->cod_fee ?? 0);
-            $order->save();
+            $codFee = $request->payment_method === 'cod'
+                ? (float) ($posSetting?->cod_fee ?? 0)
+                : 0.0;
 
-            // Create payment record
-            $payment = new Payment([
+            $order->update([
+                'subtotal' => $grandTotal,
+                'discount_total' => 0,
+                'shipping_total' => $codFee,
+                'grand_total' => $grandTotal + $codFee,
+            ]);
+
+            $payment = Payment::create([
                 'order_id' => $order->id,
                 'provider' => 'manual',
                 'method' => $request->payment_method,
-                'status' => $request->payment_method === 'cod' ? 'pending' : 'pending',
+                'status' => 'pending',
                 'amount' => $order->grand_total,
             ]);
-            $payment->save();
 
-            // Update order payment relationship
-            $order->payment()->save($payment);
-
-            // If COD, mark as confirmed immediately (for MVP)
             if ($request->payment_method === 'cod') {
                 $order->transitionTo('confirmed', auth()->id(), 'Pembayaran COD');
-                $payment->markAsPaid();
+                $payment->update([
+                    'status' => 'paid',
+                    'confirmed_at' => now(),
+                ]);
             }
 
             return response()->json([
-                'order' => $order,
+                'order' => $order->fresh('items'),
                 'payment' => $payment,
                 'success' => true,
             ]);

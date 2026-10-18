@@ -197,9 +197,18 @@
                                             </div>
                                         @endif
 
-                                        @if ($product->variants->where('compare_at_price', '>', 0)->isNotEmpty())
-                                            <span class="absolute top-2 left-2 bg-red-600 text-white text-xs px-2 py-1 rounded">Sale</span>
-                                        @endif
+                                        @php
+                                            $activeV = $product->variants->where('is_active', true);
+                                            $discount = $activeV->max('discount_percent');
+                                        @endphp
+                                        <div class="absolute top-2 left-2 flex flex-col gap-1 items-start">
+                                            @if ($product->is_featured)
+                                                <span class="bg-amber-500 text-white text-xs px-2 py-1 rounded font-medium">Unggulan</span>
+                                            @endif
+                                            @if ($discount)
+                                                <span class="bg-red-600 text-white text-xs px-2 py-1 rounded font-semibold">-{{ $discount }}%</span>
+                                            @endif
+                                        </div>
                                     </div>
 
                                     <div class="p-4">
@@ -213,7 +222,13 @@
                                                 @php
                                                     $minPrice = $product->variants->where('is_active', true)->min('price');
                                                     $maxPrice = $product->variants->where('is_active', true)->max('price');
+                                                    $struckCompare = $product->variants->where('is_active', true)
+                                                        ->where('compare_at_price', '>=', $maxPrice)
+                                                        ->max('compare_at_price');
                                                 @endphp
+                                                @if ($struckCompare && $struckCompare > $maxPrice)
+                                                    <span class="text-sm text-gray-400 line-through mr-1.5">Rp {{ number_format($struckCompare, 0, ',', '.') }}</span>
+                                                @endif
                                                 @if ($minPrice !== $maxPrice)
                                                     <span class="text-lg font-bold text-gray-900">Rp {{ number_format($minPrice, 0, ',', '.') }} <span class="text-sm font-normal text-gray-500">- Rp {{ number_format($maxPrice, 0, ',', '.') }}</span></span>
                                                 @else

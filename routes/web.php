@@ -15,20 +15,22 @@ Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', \App\Http\Controllers\DashboardController::class)
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // POS Routes
-    Route::get('/pos', [PosController::class, 'index'])->name('pos.index');
-    Route::post('/pos/record-sale', [PosController::class, 'recordSale'])->name('pos.recordSale');
-    Route::get('/pos/search-products', [PosController::class, 'searchProducts'])->name('pos.searchProducts');
-    Route::get('/pos/search-variant/{product}', [PosController::class, 'searchVariant'])->name('pos.searchVariant');
+    // POS Routes (cashier, admin, owner)
+    Route::middleware('permission:pos.access')->group(function () {
+        Route::get('/pos', [PosController::class, 'index'])->name('pos.index');
+        Route::post('/pos/record-sale', [PosController::class, 'recordSale'])->name('pos.recordSale');
+        Route::get('/pos/search-products', [PosController::class, 'searchProducts'])->name('pos.searchProducts');
+        Route::get('/pos/search-variant/{product}', [PosController::class, 'searchVariant'])->name('pos.searchVariant');
+    });
 });
 
 require __DIR__.'/auth.php';

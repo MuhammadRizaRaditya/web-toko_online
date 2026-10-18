@@ -42,6 +42,14 @@ class ColorController extends Controller
             ->with('success', 'Warna berhasil dibuat.');
     }
 
+    public function show(Color $color)
+    {
+        $color->loadCount('variants');
+        $color->load('variants.product');
+
+        return view('admin.colors.show', compact('color'));
+    }
+
     public function edit(Color $color)
     {
         return view('admin.colors.edit', compact('color'));
