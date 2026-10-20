@@ -17,8 +17,7 @@ class CatalogController extends Controller
             ->where('status', 'active')
             ->with(['category', 'images', 'variants.size', 'variants.color'])
             ->whereHas('variants', function ($q) {
-                $q->where('is_active', true)
-                    ->whereRaw('stock_on_hand - stock_reserved > 0');
+                $q->where('is_active', true);
             });
 
         // Category filter
@@ -55,7 +54,10 @@ class CatalogController extends Controller
 
         // Availability filter
         if ($request->boolean('in_stock')) {
-            $query->whereHas('variants', fn ($q) => $q->whereRaw('stock_on_hand - stock_reserved > 0'));
+            $query->whereHas('variants', function ($q) {
+                $q->where('is_active', true)
+                    ->whereRaw('stock_on_hand - stock_reserved > 0');
+            });
         }
 
         // Sorting
@@ -92,16 +94,14 @@ class CatalogController extends Controller
 
         $sizes = Size::where('is_active', true)
             ->whereHas('variants', function ($q) {
-                $q->where('is_active', true)
-                    ->whereRaw('stock_on_hand - stock_reserved > 0');
+                $q->where('is_active', true);
             })
             ->orderBy('sort_order')
             ->get();
 
         $colors = Color::where('is_active', true)
             ->whereHas('variants', function ($q) {
-                $q->where('is_active', true)
-                    ->whereRaw('stock_on_hand - stock_reserved > 0');
+                $q->where('is_active', true);
             })
             ->get();
 

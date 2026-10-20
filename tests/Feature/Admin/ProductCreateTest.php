@@ -493,6 +493,59 @@ class ProductCreateTest extends TestCase
         $this->assertNull($product->refresh()->labels);
     }
 
+    public function test_active_product_with_zero_stock_variants_still_appears_in_catalog(): void
+    {
+        Storage::fake('public');
+
+        $this->actingAs($this->admin)->post('/admin/products', $this->payload([
+            'variants' => [
+                ['size_id' => $this->sizeM->id, 'color_id' => $this->colorHitam->id, 'sku' => 'ZERO-1', 'stock' => 0, 'is_active' => '1'],
+                ['size_id' => $this->sizeL->id, 'color_id' => $this->colorPutih->id, 'sku' => 'ZERO-2', 'stock' => 0, 'is_active' => '1'],
+            ],
+        ]));
+
+        $this->actingAsGuest();
+
+        // Produk aktif dengan varian aktif tetap tampil meski stok 0, lengkap dengan badge Habis
+        $this->get('/produk')
+            ->assertOk()
+            ->assertSee('Kaos Oversized Premium')
+            ->assertSee('Habis')
+            ->assertSee('Rp 150.000');
+
+        // Filter "hanya yang ready stock" tetap mengeluarkannya
+        $this->get('/produk?in_stock=1')
+            ->assertOk()
+            ->assertDontSee('Kaos Oversized Premium');
+    }
+
+    public function test_product_with_only_inactive_variants_is_hidden_from_catalog(): void
+    {
+        Storage::fake('public');
+
+        $this->actingAs($this->admin)->post('/admin/products', $this->payload([
+            'variants' => [
+                ['size_id' => $this->sizeM->id, 'color_id' => $this->colorHitam->id, 'sku' => 'INACT-1', 'stock' => 5, 'is_active' => '0'],
+            ],
+        ]));
+
+        $product = Product::where('slug', 'kaos-oversized-premium')->firstOrFail();
+        $this->assertSame('active', $product->status);
+
+        $this->actingAsGuest();
+
+        // Tanpa satu pun varian aktif: tidak dijual, tidak tampil di katalog
+        $this->get('/produk')
+            ->assertOk()
+            ->assertDontSee('Kaos Oversized Premium')
+            ->assertSee('Tidak ada produk ditemukan');
+
+        // Tapi halaman detail tetap bisa dibuka (varian di sana nonaktif)
+        $this->get('/produk/'.$product->slug)
+            ->assertOk()
+            ->assertSee('Kaos Oversized Premium');
+    }
+
     public function test_upload_image_endpoint_works_without_image_driver(): void
     {
         Storage::fake('public');

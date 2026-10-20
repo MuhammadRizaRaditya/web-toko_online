@@ -185,9 +185,12 @@
                             <article class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
                                 <a href="{{ route('product.show', $product) }}" class="block">
                                     <div class="relative aspect-square bg-gray-100 overflow-hidden">
-                                        @if ($product->primaryImage)
-                                            <img src="{{ asset('storage/' . $product->primaryImage) }}"
-                                                 alt="{{ $product->name }}"
+                                        @php
+                                            $cardImage = $product->images->firstWhere('is_primary') ?? $product->images->first();
+                                        @endphp
+                                        @if ($cardImage)
+                                            <img src="{{ asset('storage/' . $cardImage->path) }}"
+                                                 alt="{{ $cardImage->alt_text ?: $product->name }}"
                                                  class="w-full h-full object-cover hover:scale-105 transition-transform duration-300">
                                         @else
                                             <div class="w-full h-full flex items-center justify-center text-gray-400">
@@ -200,6 +203,7 @@
                                         @php
                                             $activeV = $product->variants->where('is_active', true);
                                             $discount = $activeV->max('discount_percent');
+                                            $isOutOfStock = ! $activeV->contains(fn ($v) => $v->available_stock > 0);
                                         @endphp
                                         <div class="absolute top-2 left-2 flex flex-col gap-1 items-start">
                                             @if ($product->is_featured)
@@ -207,6 +211,9 @@
                                             @endif
                                             @if ($discount)
                                                 <span class="bg-red-600 text-white text-xs px-2 py-1 rounded font-semibold">-{{ $discount }}%</span>
+                                            @endif
+                                            @if ($isOutOfStock)
+                                                <span class="bg-gray-800 text-white text-xs px-2 py-1 rounded font-medium">Habis</span>
                                             @endif
                                         </div>
                                     </div>

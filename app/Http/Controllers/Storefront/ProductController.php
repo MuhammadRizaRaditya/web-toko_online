@@ -32,7 +32,7 @@ class ProductController extends Controller
         $relatedProducts = Product::where('status', 'active')
             ->where('category_id', $product->category_id)
             ->where('id', '!=', $product->id)
-            ->whereHas('variants', fn ($q) => $q->where('is_active', true)->whereRaw('stock_on_hand - stock_reserved > 0'))
+            ->whereHas('variants', fn ($q) => $q->where('is_active', true))
             ->with(['images', 'variants' => fn ($q) => $q->where('is_active', true)])
             ->inRandomOrder()
             ->limit(4)
