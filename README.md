@@ -56,9 +56,41 @@ php artisan test
 
 Pengujian mencakup autentikasi, profil, dashboard, hak akses, pembuatan produk, dan transaksi POS.
 
-## Screenshot dan deployment
+## Screenshot
 
-Tambahkan screenshot aktual aplikasi sebelum pengumpulan, misalnya beranda, katalog, detail produk, dashboard, dan POS. Pastikan gambar disimpan di repo dan tautannya dicantumkan di bagian ini.
+Screenshot berikut diambil dari aplikasi RIZWEAR:
 
-- **Repo GitHub:** cantumkan URL repo publik/yang dapat diakses dosen sebelum pengumpulan.
-- **Deployment:** belum tersedia. Tambahkan URL deployment aktif jika diwajibkan oleh tugas.
+### Beranda
+
+Halaman utama toko untuk pengunjung. Menampilkan identitas RIZWEAR dan pintasan ke katalog, keranjang, login, serta pendaftaran.
+
+![Beranda RIZWEAR](screenshots/beranda.png)
+
+### Katalog produk
+
+Halaman katalog pelanggan. Terlihat daftar produk dan filter berdasarkan kategori, harga, ukuran, warna, serta ketersediaan stok.
+
+![Katalog produk RIZWEAR](screenshots/katalog.png)
+
+### Manajemen produk
+
+Halaman admin untuk mencari dan mengelola produk. Tabel menampilkan kategori, jumlah varian, status, harga, dan tindakan untuk melihat atau mengedit produk.
+
+![Manajemen produk RIZWEAR](screenshots/manajemen-produk.png)
+
+### Dashboard admin
+
+Ringkasan untuk admin: jumlah produk, kategori, varian, kondisi stok, pesanan terbaru, serta pintasan untuk menambah produk, membuka POS, dan memverifikasi transfer.
+
+![Dashboard admin RIZWEAR](screenshots/dashboard-admin.png)
+
+### Dashboard owner
+
+Ringkasan operasional untuk owner, termasuk omzet, jumlah pesanan, produk dan varian, produk terlaris, serta peringatan stok.
+
+![Dashboard owner RIZWEAR](screenshots/dashboard-owner.png)
+
+## Repo dan deployment
+
+- **Repo GitHub:** [MuhammadRizaRaditya/web-toko_online](https://github.com/MuhammadRizaRaditya/web-toko_online)
+- **Deployment:** belum dilakukan; akan disiapkan nanti jika diwajibkan untuk UTS.
