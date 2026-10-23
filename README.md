@@ -1,66 +1,64 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# RIZWEAR
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+RIZWEAR adalah aplikasi toko pakaian berbasis Laravel. Aplikasi ini menyediakan katalog produk untuk pengunjung serta fitur administrasi produk dan penjualan melalui Point of Sale (POS).
 
-## About Laravel
+## Fitur
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- Halaman beranda dan katalog produk.
+- Filter katalog berdasarkan kategori, rentang harga, ukuran, warna, dan ketersediaan stok.
+- Halaman detail produk, pemilihan varian ukuran/warna, dan keranjang belanja untuk tamu maupun pengguna terdaftar.
+- Checkout COD dan transfer manual, validasi stok, pencatatan pesanan, dan riwayat pesanan pengguna.
+- Verifikasi pembayaran transfer secara manual oleh admin/owner setelah pembayaran diterima.
+- Autentikasi, registrasi, verifikasi email, dan pengelolaan profil.
+- Dashboard yang menyesuaikan peran pengguna.
+- Pengelolaan produk, gambar produk, kategori, ukuran, warna, varian, dan stok untuk admin/owner.
+- POS untuk kasir, admin, dan owner, termasuk pencatatan penjualan dan validasi ketersediaan stok.
+- Role dan permission untuk membatasi akses.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+> **Catatan transfer manual:** aplikasi tidak terhubung ke payment gateway. Pengelola toko perlu memberikan informasi rekening secara terpisah, memeriksa pembayaran, lalu mengonfirmasikannya melalui menu **Verifikasi Transfer**.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Teknologi
 
-## Learning Laravel
+- PHP 8.2 atau lebih baru
+- Laravel 11
+- SQLite (konfigurasi awal) atau database lain yang didukung Laravel
+- Node.js dan npm untuk membangun aset frontend
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## Cara menjalankan di lokal
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+Pastikan PHP, Composer, Node.js, npm, serta ekstensi PHP yang dibutuhkan Laravel telah terpasang.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Jika membutuhkan akun demo owner/admin/kasir/customer, atur `RIZWEAR_DEMO_PASSWORD` di `.env` dengan kata sandi lokal minimal 12 karakter sebelum menjalankan seeder. Akun demo tidak dibuat jika variabel tersebut kosong.
 
-## Laravel Sponsors
+```powershell
+composer install
+Copy-Item .env.example .env
+New-Item -ItemType File -Force database/database.sqlite
+php artisan key:generate
+php artisan migrate --seed
+php artisan storage:link
+npm install
+npm run build
+php artisan serve
+```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+Buka alamat yang ditampilkan oleh `php artisan serve` (biasanya `http://127.0.0.1:8000`).
 
-### Premium Partners
+Lihat `database/seeders/AdminUserSeeder.php` untuk email akun demo. Akun demo hanya untuk pengembangan lokal dan jangan digunakan pada lingkungan publik.
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+Untuk mengembangkan aset frontend dengan Vite, jalankan `npm run dev` di terminal terpisah dari `php artisan serve`.
 
-## Contributing
+## Menjalankan pengujian
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```powershell
+php artisan test
+```
 
-## Code of Conduct
+Pengujian mencakup autentikasi, profil, dashboard, hak akses, pembuatan produk, dan transaksi POS.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Screenshot dan deployment
 
-## Security Vulnerabilities
+Tambahkan screenshot aktual aplikasi sebelum pengumpulan, misalnya beranda, katalog, detail produk, dashboard, dan POS. Pastikan gambar disimpan di repo dan tautannya dicantumkan di bagian ini.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+- **Repo GitHub:** cantumkan URL repo publik/yang dapat diakses dosen sebelum pengumpulan.
+- **Deployment:** belum tersedia. Tambahkan URL deployment aktif jika diwajibkan oleh tugas.

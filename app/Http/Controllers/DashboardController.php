@@ -146,6 +146,11 @@ class DashboardController extends Controller
             'user' => $user,
             'kategori' => $kategori,
             'produkTerbaru' => $produkTerbaru,
+            'pesananTerbaru' => Order::where('user_id', $user->id)
+                ->with('payment')
+                ->latest()
+                ->limit(5)
+                ->get(),
         ];
     }
 }

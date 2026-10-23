@@ -25,11 +25,14 @@
                     </nav>
                 </div>
                 <div class="flex items-center space-x-4">
-                    <a href="{{ route('dashboard') }}" class="relative text-gray-700 hover:text-gray-900">
+                    <a href="{{ route('cart.index') }}" class="relative text-gray-700 hover:text-gray-900" aria-label="Keranjang belanja">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
                         </svg>
                         <span class="sr-only">Keranjang</span>
+                        @if (cartItemCount())
+                            <span class="absolute -top-1 -right-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-xs text-white">{{ cartItemCount() }}</span>
+                        @endif
                     </a>
                     @auth
                         <a href="{{ route('dashboard') }}" class="text-sm text-gray-700 hover:text-gray-900">Dashboard</a>

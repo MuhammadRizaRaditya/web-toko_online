@@ -25,7 +25,7 @@
                     </nav>
                 </div>
                 <div class="flex items-center space-x-4">
-                    <a href="{{ route('catalog.index') }}" class="relative text-gray-700 hover:text-gray-900">
+                    <a href="{{ route('cart.index') }}" class="relative text-gray-700 hover:text-gray-900" aria-label="Keranjang belanja">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
                         </svg>
@@ -173,31 +173,30 @@
                         </div>
                     @endif
 
-                    <!-- Quantity -->
-                    <div class="mt-6">
-                        <label class="block text-sm font-medium text-gray-700 mb-2" for="quantity">Jumlah</label>
-                        <div class="flex items-center border border-gray-300 rounded-lg overflow-hidden w-fit">
-                            <button type="button" onclick="changeQty(-1)" class="px-3 py-2 border-r border-gray-300 text-gray-600 hover:bg-gray-50">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/></svg>
-                            </button>
-                            <input type="number" id="quantity" value="1" min="1" max="{{ $initialVariant?->available_stock ?: 1 }}"
-                                   class="w-20 px-3 py-2 text-center focus:outline-none">
-                            <button type="button" onclick="changeQty(1)" class="px-3 py-2 border-l border-gray-300 text-gray-600 hover:bg-gray-50">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                            </button>
-                        </div>
-                        <p class="mt-2 text-xs text-gray-500" id="stockInfo"></p>
-                    </div>
+                    <form method="POST" action="{{ route('cart.store') }}" class="mt-6 space-y-4">
+                        @csrf
+                        <input type="hidden" name="variant_id" id="selectedVariantId" required>
 
-                    <!-- Purchase (fitur dalam pengembangan) -->
-                    <div class="mt-6 p-4 bg-gray-100 border border-gray-200 rounded-lg">
-                        <p class="text-sm text-gray-600">
-                            <svg class="w-4 h-4 inline -mt-0.5 mr-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                            Keranjang belanja dan checkout sedang dalam pengembangan. Silakan pilih varian dan jumlah — pesanan akan segera bisa diproses.
-                        </p>
-                    </div>
+                        <!-- Quantity -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2" for="quantity">Jumlah</label>
+                            <div class="flex items-center border border-gray-300 rounded-lg overflow-hidden w-fit">
+                                <button type="button" onclick="changeQty(-1)" class="px-3 py-2 border-r border-gray-300 text-gray-600 hover:bg-gray-50">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/></svg>
+                                </button>
+                                <input type="number" id="quantity" name="quantity" value="1" min="1" max="{{ $initialVariant?->available_stock ?: 1 }}" required
+                                       class="w-20 px-3 py-2 text-center focus:outline-none">
+                                <button type="button" onclick="changeQty(1)" class="px-3 py-2 border-l border-gray-300 text-gray-600 hover:bg-gray-50">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                </button>
+                            </div>
+                            <p class="mt-2 text-xs text-gray-500" id="stockInfo"></p>
+                        </div>
+
+                        <button type="submit" id="addToCartButton" disabled class="inline-flex w-full items-center justify-center rounded-lg bg-gray-900 px-5 py-3 text-sm font-semibold text-white hover:bg-gray-700 disabled:cursor-not-allowed disabled:bg-gray-400 sm:w-auto">
+                            Tambahkan ke keranjang
+                        </button>
+                    </form>
                 </div>
 
                 <!-- Info singkat -->
@@ -339,11 +338,13 @@
             const banner = document.getElementById('stockBanner');
             const info = document.getElementById('stockInfo');
             const qty = document.getElementById('quantity');
+            const addButton = document.getElementById('addToCartButton');
 
             if (!card) return;
 
             const stock = Number(card.dataset.stock);
             const threshold = Number(card.dataset.threshold || 5);
+            addButton.disabled = stock <= 0;
 
             qty.max = stock > 0 ? stock : 1;
             if (Number(qty.value) > stock) qty.value = stock > 0 ? stock : 1;
@@ -375,6 +376,7 @@
             });
             el.classList.add('is-selected', 'border-blue-600', 'bg-blue-50');
             el.classList.remove('border-gray-200');
+            document.getElementById('selectedVariantId').value = el.dataset.id;
             formatPrice();
             formatStock();
         }

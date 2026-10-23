@@ -112,7 +112,8 @@ class DashboardTest extends TestCase
             ->assertSee('Kategori Produk')
             ->assertSee('Produk Terbaru')
             ->assertSee($category->name)
-            ->assertSee('Fitur dalam pengembangan')
+            ->assertSee('Pesanan Terbaru')
+            ->assertSee('Lihat keranjang')
             ->assertDontSee('Panel Admin')
             ->assertDontSee('Kasir (POS)')
             ->assertSee($product->name);

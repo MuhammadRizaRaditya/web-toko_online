@@ -2,17 +2,19 @@
 
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\ColorController;
+use App\Http\Controllers\Admin\OrderPaymentController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\SizeController;
 use App\Http\Controllers\Admin\VariantController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Storefront\CatalogController;
+use App\Http\Controllers\Storefront\CartController;
 use App\Http\Controllers\Storefront\ProductController as StorefrontProductController;
 use App\Http\Controllers\Storefront\PosController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('storefront.home');
 })->name('home');
 
 Route::get('/dashboard', \App\Http\Controllers\DashboardController::class)
@@ -40,6 +42,17 @@ Route::get('/produk', [CatalogController::class, 'index'])->name('catalog.index'
 Route::get('/kategori/{category:slug}', [CatalogController::class, 'show'])->name('catalog.category');
 Route::get('/produk/{product:slug}', [StorefrontProductController::class, 'show'])->name('product.show');
 Route::get('/api/product/{product:slug}/variant', [StorefrontProductController::class, 'getVariant'])->name('product.variant.api');
+Route::get('/keranjang', [CartController::class, 'index'])->name('cart.index');
+Route::post('/keranjang', [CartController::class, 'store'])->name('cart.store');
+Route::patch('/keranjang/{cartItem}', [CartController::class, 'update'])->name('cart.update');
+Route::delete('/keranjang/{cartItem}', [CartController::class, 'destroy'])->name('cart.destroy');
+Route::get('/checkout', [CartController::class, 'checkout'])->name('checkout.index');
+Route::post('/checkout', [CartController::class, 'placeOrder'])->name('checkout.store');
+Route::get('/checkout/berhasil', [CartController::class, 'success'])->name('checkout.success');
+Route::get('/pesanan/{order}', [CartController::class, 'showOrder'])
+    ->middleware('auth')
+    ->whereNumber('order')
+    ->name('orders.show');
 
 // ===================== ADMIN ROUTES =====================
 Route::middleware(['auth', 'role:admin,owner'])->prefix('admin')->name('admin.')->group(function () {
@@ -66,6 +79,11 @@ Route::middleware(['auth', 'role:admin,owner'])->prefix('admin')->name('admin.')
     Route::resource('variants', VariantController::class);
     Route::post('variants/{variant}/adjust-stock', [VariantController::class, 'adjustStock'])->name('variants.adjustStock');
     Route::get('variants/{variant}/stock-history', [VariantController::class, 'stockHistory'])->name('variants.stockHistory');
+
+    Route::middleware('permission:payments.verify')->prefix('payments')->name('payments.')->group(function () {
+        Route::get('transfers', [OrderPaymentController::class, 'pendingTransfers'])->name('transfers.index');
+        Route::post('transfers/{order}/verify', [OrderPaymentController::class, 'verifyTransfer'])->name('transfers.verify');
+    });
 });
 
 // ===================== TEST ROUTES ===================

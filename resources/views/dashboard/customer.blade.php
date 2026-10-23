@@ -92,16 +92,24 @@
             @endif
         </div>
 
-        {{-- Info Fitur --}}
-        <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
-            <svg class="w-5 h-5 text-amber-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            <div class="text-sm text-amber-800">
-                <p class="font-semibold">Fitur dalam pengembangan</p>
-                <p class="mt-0.5 text-amber-700">
-                    Keranjang belanja, checkout, dan riwayat pesanan belum tersedia saat ini.
-                    Fitur akan muncul di halaman ini setelah modulnya selesai diimplementasikan.
-                </p>
+        {{-- Riwayat Pesanan --}}
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 sm:p-6">
+            <div class="flex items-center justify-between gap-4">
+                <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Pesanan Terbaru</h3>
+                <a href="{{ route('cart.index') }}" class="text-sm font-medium text-blue-600 hover:text-blue-700">Lihat keranjang</a>
             </div>
+            @if ($pesananTerbaru->isEmpty())
+                <p class="mt-4 text-sm text-gray-500">Pesanan Anda akan muncul di sini setelah checkout.</p>
+            @else
+                <div class="mt-4 divide-y divide-gray-200">
+                    @foreach ($pesananTerbaru as $pesanan)
+                        <a href="{{ route('orders.show', $pesanan) }}" class="flex flex-col gap-1 py-3 text-sm sm:flex-row sm:items-center sm:justify-between">
+                            <span class="font-medium text-gray-900">{{ $pesanan->order_number }}</span>
+                            <span class="text-gray-500">{{ str_replace('_', ' ', ucfirst($pesanan->order_status)) }} · Rp {{ number_format((float) $pesanan->grand_total, 0, ',', '.') }}</span>
+                        </a>
+                    @endforeach
+                </div>
+            @endif
         </div>
     </div>
 </x-dashboard.layout>
