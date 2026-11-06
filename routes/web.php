@@ -17,6 +17,10 @@ Route::get('/', function () {
     return view('storefront.home');
 })->name('home');
 
+Route::get('/demo/javascript-dasar', function () {
+    return view('storefront.javascript-demo');
+})->name('javascript-demo');
+
 Route::get('/dashboard', \App\Http\Controllers\DashboardController::class)
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
